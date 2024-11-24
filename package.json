@@ -1,0 +1,20 @@
+{
+  "name": "supermercado",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bootstrap": "5.3.3",
+    "express": "4.21.1",
+    "mysql2": "3.11.3",
+    "zod": "3.23.8"
+  }
+}
