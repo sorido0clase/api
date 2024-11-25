@@ -1,14 +1,114 @@
 // importar todas las librerias
 
 import express from "express"
-
+import mysql from "mysql2"
+import { z } from "zod"
 
 const app = express()
 const port = process.env.PORT || 4000;
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
+/// public index.html
+app.use(express.static('public')); 
+app.use(express.json());
+
+
+// configuracion a la base de datos
+//  const db = mysql.createConnection({
+//      host: 'localhost',
+//      user: "root",
+//      password: "Ass5331158",
+//      database: "superMercado"
+//  })
+
+const db = mysql.createConnection({
+    host: 'junction.proxy.rlwy.net',
+    port: 17385,
+    user: 'root',
+    password: 'DjNTRfiMILnJQoColiDqkbsULAHZfuoV',
+    database: 'railway'
+});
+console.info(process.env.DB_HOST, process.env.DB_PORT)
+db.connect(err => {
+    if(err){
+        console.error("Error al conectarse a la base de datos " + err)
+        return
+    } 
+
+    console.info("connection Exitosa")
 })
+
+// node --watch server.js
+const articuloSchema = z.object(
+    {
+       
+        nombre: z.string().min(1),
+        descripcion: z.string().optional(),
+        precio: z.number().nonnegative(),
+        cantidad: z.number().int().nonnegative,
+        categoria: z.string().optional(),
+        imagen: z.string().url().optional
+    }
+)
+
+
+const ruta = "http://junction.proxy.rlwy.net:14591/articulo"
+// rutas de las api 
+app.get("/articulo", (req, res) =>{
+    
+    db.query(`select * from railway.articulos;`, (err, result) =>{
+
+        if (err) {
+            return res.status(500).json({ error: err.message});
+        }
+        res.json(result)
+
+     })
+})
+
+app.get('/articulo/buscar', (req, res) =>{
+
+    const { nombre, categoria } = req.query;
+    
+    let consulta = `select * 
+        from railway.articulos 
+        where `
+
+    const params = []
+    
+    if (nombre) {
+        consulta += `nombre = '${nombre}'`
+     
+    }
+
+    if (categoria) {
+        consulta += `categoria = '${categoria}'`
+        
+    }
+
+
+    db.query(consulta, (err, result) =>{
+
+        console.log(consulta);
+        
+        if (err) {
+            return res.status(500).json({ error: err.message});
+        }
+        res.json(result)
+     })
+})
+
+app.get('/categorias', (req, res) => {
+    db.query(`SELECT DISTINCT categoria AS nombre FROM railway.articulos`, (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.json(result);
+    });
+});
+
+//! app.post()
+//! app.delete()
+//! app.put()
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
