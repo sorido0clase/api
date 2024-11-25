@@ -6,7 +6,7 @@ import { z } from "zod"
 
 // app
 const app = express()
-const port = 0;
+const port = process.env.PORT || 4000;
 
 
 
