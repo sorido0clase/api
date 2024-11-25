@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> 🛒SuperSorido0 🏬</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="d-flex justify-content-evenly flex-column">
+    
+    <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">🛒SuperSorido0 🏬</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link active" aria-current="page" href="#" onclick="filtroCategoria('Frutas')">Frutas</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#" onclick="filtroCategoria('Carnes')">Carnes</a>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  Categorias
+                </a>
+                <ul class="dropdown-menu" id="categoria">
+                </ul>
+              </li>
+            </ul>
+            
+            <form class="d-flex" role="search" onsubmit="buscarProductos(event)">
+              <input id="btn" class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+              <button class="btn btn-outline-success" type="submit" >Buscar</button>
+            </form>
+          </div>
+        </div>
+      </nav>
+
+
+      <main class="container w-80 p-3  bg-primary-subtle mt-3">
+        <div class="container text-center mt-5">
+            <div class="row" id="productContainer">
+                
+            </div>
+        </div>
+        </main>
+
+        <button class="btn btn-primary rounded-circle floating-btn" onclick="verCarrito()">
+          <i class="bi bi-cart"> Carrito 🛒</i>
+        </button>  
+  
+</body>
+
+<script>
+
+  window.onload = function() {
+    cargarPructos()
+    cargarCategoria()
+  }
+
+  // Parra cargar los productos 
+  async function cargarPructos() {
+      const respuesta = await fetch('/articulo')
+      const productos = await respuesta.json()
+
+      clearPantalla()
+      rederProductos(productos)
+  }
+
+  // Para cargar las categorias 
+    async function cargarCategoria(categoria) {
+        const respuesta = await fetch('/categorias')
+        const productos = await respuesta.json()
+        const categoriaMune = document.getElementById('categoria')
+        
+        categoriaMune.innerHTML = productos.map(
+        cate => `
+            <li><a class="dropdown-item" href="#" onclick='filtroCategoria(${cate.nombre})'>${cate.nombre}</a></li>
+        ` 
+        ).join('')
+    }
+
+    // filtran cateogira 
+    async function filtroCategoria(categoria) {
+        console.log(categoria)
+        const respuesta = await fetch(`/articulo/buscar?categoria=${categoria}`)
+        const productos = await respuesta.json()
+        clearPantalla()
+        rederProductos(productos)
+    }
+
+
+    // Buscar productos por nombre 
+    async function buscarProductos( event ) {
+        event.preventDefault()
+
+        const busqueda = document.getElementById("btn").value
+        const respuesta =  await fetch(`/articulo/buscar?nombre=${busqueda}`)
+
+        const productos = await respuesta.json()
+        clearPantalla()
+        rederProductos(productos)
+
+    }
+
+
+    function clearPantalla() {
+        const productoContainer = document.getElementById('productContainer');
+        productoContainer.innerHTML = ''; 
+    } 
+
+
+  function rederProductos(productos) {
+    const productoContainer = document.getElementById('productContainer')
+      productos.forEach( producto =>{
+                const producCart = `
+                    <div class="col m-1">
+                        <div class="card m-4" style="width: 10rem;">
+                            <img src="https://www.cocinista.es/download/bancorecursos/recetas/receta-arroz-glutinoso-vapor.jpg">
+                            <div class="card-body">
+                            <h5 class="card-title">${producto.nombre}</h5>
+                            <p class="card-text">${producto.descripcion || 'No description available.'}</p>
+                            <p class="card-text"><strong>Precio:</strong> $${producto.precio}</p>
+                            <p class="card-text"><strong>Cantidad:</strong> ${producto.cantidad}</p>
+                            <button onclick="agregarAlCarrito(${producto.id}, '${producto.nombre}', ${producto.precio})" class="btn btn-primary">Agregar al carrito</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            productoContainer.innerHTML += producCart;
+        } )
+    }
+
+    
+
+// Agregar un producto al carrito
+function agregarAlCarrito(id, nombre, precio) {
+  // Obtener el carrito actual del LocalStorage (o inicializarlo vacío)
+  let carrito = JSON.parse(localStorage.getItem('carrito')) || {};
+
+  // Si el producto ya está en el carrito, incrementa la cantidad
+  if (carrito[id]) {
+      carrito[id].cantidad += 1;
+  } else {
+      // Si no, añade el producto al carrito
+      carrito[id] = { id, nombre, precio, cantidad: 1 };
+  }
+
+  // Guardar el carrito actualizado en el LocalStorage
+  localStorage.setItem('carrito', JSON.stringify(carrito));
+  alert(`${nombre} agregado al carrito.`);
+}
+
+// Mostrar el contenido del carrito
+function verCarrito() {
+  // Obtener el carrito del LocalStorage
+  const carrito = JSON.parse(localStorage.getItem('carrito')) || {};
+
+  const productoContainer = document.getElementById('productContainer');
+  productoContainer.innerHTML = '<h3>Carrito de Compras</h3>';
+
+  let total = 0;
+  for (const id in carrito) {
+      const producto = carrito[id];
+      total += producto.precio * producto.cantidad;
+      productoContainer.innerHTML += `
+          <p>${producto.nombre} - $${producto.precio} x ${producto.cantidad}, total: ${total}</p>
+      `;
+  }
+  
+}
+
+// Vaciar el carrito
+function vaciarCarrito() {
+  // Eliminar el carrito del LocalStorage
+  localStorage.removeItem('carrito');
+  alert("Carrito vaciado.");
+  verCarrito();  // Refrescar el contenido
+}
+
+
+
+
+</script>
+
+
+
+</html>
+
