@@ -16,12 +16,12 @@ app.use(express.json());
 
 
 // configuracion a la base de datos
-//!  const db = mysql.createConnection({
-//!     host: 'localhost',
-//!     user: "root",
-//!     password: "aaaaa",
-//!     database: "superMercado"
-//!  })
+//  const db = mysql.createConnection({
+//      host: 'localhost',
+//      user: "root",
+//      password: "Ass5331158",
+//      database: "superMercado"
+//  })
 
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -30,7 +30,7 @@ const db = mysql.createConnection({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME
 });
-
+console.info(process.env.DB_HOST, process.env.DB_PORT)
 db.connect(err => {
     if(err){
         console.error("Error al conectarse a la base de datos " + err)
@@ -56,16 +56,17 @@ const articuloSchema = z.object(
 
 const ruta = "http://junction.proxy.rlwy.net:14591/articulo"
 // rutas de las api 
-app.get(ruta, (req, res) =>{
+app.get("/articulo", (req, res) =>{
     
-    db.query(`select * from articulos`, (err, result) =>{
+    db.query(`select * from railway.articulos;`, (err, result) =>{
 
         if (err) {
             return res.status(500).json({ error: err.message});
         }
         res.json(result)
+        console.info(result)
+
      })
-     console.info(res )
 })
 
 app.get('/articulo/buscar', (req, res) =>{
@@ -73,18 +74,18 @@ app.get('/articulo/buscar', (req, res) =>{
     const { nombre, categoria } = req.query;
     
     let consulta = `select * 
-        from articulos 
+        from railway.articulos 
         where `
 
     const params = []
     
     if (nombre) {
-        consulta += `nombre = "${nombre}"`
+        consulta += `nombre = '${nombre}'`
      
     }
 
     if (categoria) {
-        consulta += `categoria = "${categoria}"`
+        consulta += `categoria = '${categoria}'`
         
     }
 
@@ -101,7 +102,7 @@ app.get('/articulo/buscar', (req, res) =>{
 })
 
 app.get('/categorias', (req, res) => {
-    db.query(`SELECT DISTINCT categoria AS nombre FROM articulos`, (err, result) => {
+    db.query(`SELECT DISTINCT categoria AS nombre FROM railway.articulos`, (err, result) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
@@ -112,6 +113,11 @@ app.get('/categorias', (req, res) => {
 //! app.post()
 //! app.delete()
 //! app.put()
+
+
+app.listen(port, () => {
+    console.info('Servidor corriendo por el http:localhost:' + port )
+})
 
 
 app.listen(port, () => {
