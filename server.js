@@ -6,7 +6,7 @@ import { z } from "zod"
 
 // app
 const app = express()
-const port =const PORT = process.env.PORT || 4000 || 3000 ; // Local usa 3000
+const PORT = process.env.PORT || 4000 || 3000 ; // Local usa 3000
 
 
 
@@ -121,6 +121,6 @@ app.listen(port, () => {
 })
 
 
-app.listen(port, () => {
-    console.info('Servidor corriendo por el http:localhost:' + port )
+app.listen(PORT, () => {
+    console.info(`Servidor corriendo en http://localhost:${PORT}`)
 })
